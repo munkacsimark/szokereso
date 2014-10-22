@@ -10,6 +10,7 @@ body {
   border-radius: 10px;
   background-color: #555;
   border-spacing: 0px;
+  position: absolute;
 }
 #game table tr td {
   padding: 10px;

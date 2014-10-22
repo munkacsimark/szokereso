@@ -6,6 +6,15 @@ function Szokereso(abc, words) {
 		return selectedLetter;
 	}
 
+	var positionCenterTable = function() {
+		var xPos = $(window).width() / 2 - $(container).find('table').width() / 2;
+		var yPos = $(window).height() / 2 - $(container).find('table').height() / 2;
+		$(container).find('table').css({
+			'left' : xPos + 'px',
+			'top' : yPos + 'px'
+		});
+	}
+
 	var drawTable = function(rows, columns) {
 		var temp = '<table>';
 		for(var i = 0; i <= rows; i++) {
@@ -21,6 +30,7 @@ function Szokereso(abc, words) {
 
 	if (container.length != 0) {
 		drawTable(10, 10);
+		positionCenterTable();
 	} else {
 		return;
 	}
