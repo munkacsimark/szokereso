@@ -1,6 +1,19 @@
-function Szokereso(abc, words) {
+function Szokereso(abc, words, dimensions) {
 	var container = $('#game');
-	var dimensions = [10, 10];
+	var dimensions = dimensions;
+	var isMouseDown = false;
+
+	var mouseDownHandler = function() {
+		$(container).on('mousedown', function() {
+			isMouseDown = true;
+			console.log('Egér gomb lenyomva');
+		})
+		.on('mouseup', function() {
+			isMouseDown = false;
+			clearSelection();
+			console.log('Egér gomb felengedve');
+		});
+	}
 
 	var getRandomElement = function(array) {
 		var selectedElement = array[Math.floor(Math.random()*array.length)];
@@ -34,7 +47,6 @@ function Szokereso(abc, words) {
 			newActivePosition = getRandomElement([upCoordinates, downCoordinates, rightCoordinates, leftCoordinates]);
 			antiStuckIterator++;
 			if (antiStuckIterator > 10) {
-				console.log('===STUCK===');
 				return false;
 			}
 		} while (
@@ -89,13 +101,32 @@ function Szokereso(abc, words) {
 		return true;
 	}
 
+	var clearSelection= function() {
+		$(container).find('td').removeClass('active');
+		gameHandler.selectedWordCoordinates = [];
+	}
+
+	var gameHandler = function() {
+		this.selectedWordCoordinates = [];
+
+		$(container).find('td').bind('mouseover mouseleave', function() {
+			if (isMouseDown) {
+				var activeCoordinate = [$(this).data('row'), $(this).data('column')];
+				selectedWordCoordinates.push(activeCoordinate);
+				$(this).addClass('active');
+			}
+		});
+	}
+
 	if (container.length != 0) {
 		console.log('--- Inicializálás ---');
+		mouseDownHandler();
 		drawTable(dimensions[0], dimensions[1]);
 		while (!putFindableWord()) {
 			drawTable(dimensions[0], dimensions[1]);
 		} ;
 		positionCenterTable();
+		gameHandler();
 	} else {
 		console.error('Nincs "game" id-val rendelkező elem.');
 		return;
@@ -107,6 +138,6 @@ var hunWords = ['EZEGYHOSSZUSZOBEFOGAKADNI','CICA','HELLO','SZIA'];
 
 $(document).ready(function() {
 
-	var szokereso = new Szokereso(hunAbc, hunWords);
+	var szokereso = new Szokereso(hunAbc, hunWords, [10, 10]);
 
 });
