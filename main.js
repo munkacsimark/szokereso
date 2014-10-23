@@ -3,8 +3,8 @@ function Szokereso(abc, words) {
 	var dimensions = [10, 10];
 
 	var getRandomElement = function(array) {
-		var selectedLetter = array[Math.floor(Math.random()*array.length)];
-		return selectedLetter;
+		var selectedElement = array[Math.floor(Math.random()*array.length)];
+		return selectedElement;
 	}
 
 	var getStartPoint = function(rows, columns) {
@@ -29,8 +29,14 @@ function Szokereso(abc, words) {
 		var rightCoordinates = [activePosition[0], activePosition[1] + 1];
 		var leftCoordinates = [activePosition[0], activePosition[1] - 1];
 		var newActivePosition = [];
+		var antiStuckIterator = 0;
 		do {
 			newActivePosition = getRandomElement([upCoordinates, downCoordinates, rightCoordinates, leftCoordinates]);
+			antiStuckIterator++;
+			if (antiStuckIterator > 10) {
+				console.log('===STUCK===');
+				return false;
+			}
 		} while (
 			(newActivePosition[0] < 1 || newActivePosition[0] > dimensions[0]) ||
 			(newActivePosition[1] < 1 || newActivePosition[1] > dimensions[1]) ||
@@ -50,6 +56,7 @@ function Szokereso(abc, words) {
 	}
 
 	var drawTable = function(rows, columns) {
+		$(container).empty();
 		var temp = '<table>';
 		for (var i = 1; i <= rows; i++) {
 			temp += '<tr>';
@@ -72,26 +79,31 @@ function Szokereso(abc, words) {
 			currentCell.text(findableWord[i]);
 			history[i] = activePosition;
 			activePosition = getRandomDirection(activePosition,history);
+			if (activePosition === false){
+				console.error('A szó kiírása zsákutcába ért.');
+				return false;
+			}
 			console.log(findableWord[i] + ' letéve: ' + history[i] + ' - következő koordináta: ' + activePosition);
 		}
 		console.log('Keresendő szó elhelyezve');
+		return true;
 	}
 
 	if (container.length != 0) {
 		console.log('--- Inicializálás ---');
 		drawTable(dimensions[0], dimensions[1]);
+		while (!putFindableWord()) {
+			drawTable(dimensions[0], dimensions[1]);
+		} ;
 		positionCenterTable();
-		putFindableWord();
 	} else {
 		console.error('Nincs "game" id-val rendelkező elem.');
 		return;
-	}
-
-	
+	}	
 }
 
 var hunAbc = ['A', 'Á', 'B', 'C', 'D', 'E', 'É', 'F', 'G', 'H', 'I', 'Í', 'J', 'K', 'L', 'M', 'N', 'O', 'Ó', 'Ö', 'Ő', 'P', 'Q', 'R', 'S', 'T', 'U', 'Ú', 'Ü', 'Ű', 'V', 'W', 'X', 'Y', 'Z'];
-var hunWords = ['12345678','MIJAU'];
+var hunWords = ['EZEGYHOSSZUSZOBEFOGAKADNI','CICA','HELLO','SZIA'];
 
 $(document).ready(function() {
 
