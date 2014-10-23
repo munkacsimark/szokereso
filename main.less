@@ -1,4 +1,4 @@
-.unselectable {
+.unselectable() {
   -moz-user-select: none;
   -webkit-user-select: none;
   -ms-user-select: none;
@@ -26,9 +26,11 @@ body{
 			background-color: #eee;
 			.unselectable;
 			cursor: pointer;
+			transition: 0.5s;
 		}
 	}
 	.active{
 		background-color: #f55;
+		transition: 0.2s;
 	}
 }
