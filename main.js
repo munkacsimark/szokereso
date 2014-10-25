@@ -81,11 +81,12 @@ MouseEventHandler.prototype = {
 		var that = this;
 		$(window).on('mousedown', function() {
 			console.log('egér lenyomva');
-			that.creator.wordSelectionHandler(); //TODO
+			that.creator.wordSelectionHandler(true); //TODO
 		})
 		.on('mouseup', function() {
 			console.log('egér felengedve');
 			that.creator.clearSelection();
+			that.creator.wordSelectionHandler(false);
 		});
 	}
 }
@@ -134,14 +135,19 @@ GameController.prototype = {
 		this.container.find('td').removeClass('active');
 		this.selectedWordCoordinates = [];
 	},
-	wordSelectionHandler : function() {
+	wordSelectionHandler : function(isMouseDown) {
 		var that = this;
-		this.container.find('td').bind('mouseover mouseleave', function() {
-			var activeCoordinate = [$(this).data('row'), $(this).data('column')];
-			that.selectedWordCoordinates.push(activeCoordinate);
-			//TODO
-			$(this).addClass('active');
-		});
+		if (!isMouseDown){
+			this.container.find('td').unbind('mouseover mouseleave');
+		}
+		if(isMouseDown){
+			this.container.find('td').bind('mouseover mouseleave', function() {
+				var activeCoordinate = [$(this).data('row'), $(this).data('column')];
+				that.selectedWordCoordinates.push(activeCoordinate);
+				//TODO
+				$(this).addClass('active');
+			});
+		}
 	}
 }
 
