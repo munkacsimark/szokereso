@@ -28,7 +28,8 @@ Table.prototype = {
 		console.log('Tábla középre igazítva');
 	},
 	putFindableWord : function() {
-		var findableWord = this.creator.getRandomElement(this.creator.words) .split('');
+		this.creator.placedWord = this.creator.getRandomElement(this.creator.words);
+		var findableWord = this.creator.placedWord.split('');
 		var activePosition = [
 			Math.floor((Math.random() * this.creator.dimensions[0]) + 1),
 			Math.floor((Math.random() * this.creator.dimensions[1]) + 1)
@@ -71,6 +72,20 @@ Table.prototype = {
 	}
 }
 
+// TIME CONTROLLER
+function TimeController(creator) {
+	this.creator = creator;
+}
+
+TimeController.prototype = {
+	// init
+	// start
+	// stop
+	// increase
+	// decrease
+	// status
+}
+
 // MOUSE EVENT HANDLER
 function MouseEventHandler(creator) {
 	this.creator = creator;
@@ -81,10 +96,11 @@ MouseEventHandler.prototype = {
 		var that = this;
 		$(window).on('mousedown', function() {
 			console.log('egér lenyomva');
-			that.creator.wordSelectionHandler(true); //TODO
+			that.creator.wordSelectionHandler(true);
 		})
 		.on('mouseup', function() {
 			console.log('egér felengedve');
+			that.creator.compareSelection();
 			that.creator.clearSelection();
 			that.creator.wordSelectionHandler(false);
 		});
@@ -94,30 +110,38 @@ MouseEventHandler.prototype = {
 // GAME CONTROLLER
 function GameController(container, abc, words, dimensions) {
 	this.container = container;
+	this.table = {};
 	this.abc = abc;
 	this.words = words;
 	this.dimensions = dimensions;
 	this.placedWordHistory = [];
+	this.placedWord = '';
+	this.selectedWord = '';
 	this.selectedWordCoordinates = [];
+	this.selectSwitch = true;
 }
 
 GameController.prototype = {
 	start : function() {
 		if (this.container.length != 0) {
-			console.log('--- Inicializálás ---');
-			var table = new Table(this);
+			this.newTable();
 			var mouseEventHandler = new MouseEventHandler(this);
-			table.draw();
-			table.positionCenter();
-			while (!table.putFindableWord()) {
-				table.draw();
-			} ;
+			var timeController = new TimeController(this);
 			mouseEventHandler.trackMouse();
 		} else {
 			console.error('Nincs "game" id-val rendelkező elem.');
 			return;
 		}
 
+	},
+	newTable : function() {
+		console.log('--- Inicializálás ---');
+		this.table = new Table(this);
+		this.table.draw();
+		this.table.positionCenter();
+		while (!this.table.putFindableWord()) {
+			this.table.draw();
+		} ;
 	},
 	getRandomElement : function(array) {
 		var selectedElement = array[Math.floor(Math.random()*array.length)];
@@ -134,19 +158,35 @@ GameController.prototype = {
 	clearSelection : function() {
 		this.container.find('td').removeClass('active');
 		this.selectedWordCoordinates = [];
+		this.selectedWord = [];
 	},
 	wordSelectionHandler : function(isMouseDown) {
 		var that = this;
-		if (!isMouseDown){
-			this.container.find('td').unbind('mouseover mouseleave');
-		}
-		if(isMouseDown){
+		if (isMouseDown) {
 			this.container.find('td').bind('mouseover mouseleave', function() {
+				if (!that.selectSwitch) {
+					that.container.find('td').unbind('mouseleave');
+				}
 				var activeCoordinate = [$(this).data('row'), $(this).data('column')];
 				that.selectedWordCoordinates.push(activeCoordinate);
-				//TODO
+				that.selectedWord += $(this).text();
 				$(this).addClass('active');
+				that.selectSwitch = false;
 			});
+		} else {
+			this.container.find('td').unbind('mouseover mouseleave');
+			this.selectSwitch = true;
+		}
+	},
+	compareSelection : function() {
+		console.log('Beteve: '+this.placedWord+' Kivalasztva: '+this.selectedWord);
+		if (this.placedWord == this.selectedWord) {
+			console.log('MEGVAN');
+			this.newTable();
+			// IDO+
+		} else {
+			console.log('NEMJO');
+			// IDO -
 		}
 	}
 }
