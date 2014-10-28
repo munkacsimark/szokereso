@@ -72,18 +72,40 @@ Table.prototype = {
 	}
 }
 
-// TIME CONTROLLER
-function TimeController(creator) {
+// LIFE CONTROLLER
+function LifeController(creator) {
+	var that = this;
 	this.creator = creator;
+	this.life = 100;
+	this.timer = setInterval(function(){
+		that.decrease();
+		console.log(that.life);
+	}, 1000);
 }
 
-TimeController.prototype = {
-	// init
-	// start
-	// stop
-	// increase
-	// decrease
-	// status
+LifeController.prototype = {
+	restart : function() {
+		this.life = 100;
+	},
+	stop : function() {
+		clearInterval(this.timer);
+	},
+	decrease : function() {
+		this.life -= 30 + (this.creator.foundWords / 3);
+		this.lifeChecker();
+	},
+	increase : function() {
+		this.life += 10;
+		if (this.life > 100) {
+			this.life = 100;
+		}
+	},
+	lifeChecker : function() {
+		if (this.life <= 0) {
+			this.creator.gameOver();
+			this.stop();
+		}
+	}
 }
 
 // MOUSE EVENT HANDLER
@@ -119,6 +141,7 @@ function GameController(container, abc, words, dimensions) {
 	this.selectedWord = '';
 	this.selectedWordCoordinates = [];
 	this.selectSwitch = true;
+	this.foundWords = 0;
 }
 
 GameController.prototype = {
@@ -126,7 +149,7 @@ GameController.prototype = {
 		if (this.container.length != 0) {
 			this.newTable();
 			var mouseEventHandler = new MouseEventHandler(this);
-			var timeController = new TimeController(this);
+			var lifeController = new LifeController(this);
 			mouseEventHandler.trackMouse();
 		} else {
 			console.error('Nincs "game" id-val rendelkező elem.');
@@ -172,6 +195,7 @@ GameController.prototype = {
 				that.selectedWord += $(this).text();
 				$(this).addClass('active');
 				that.selectSwitch = false;
+				that.checkBackspace(activeCoordinate);
 			});
 		} else {
 			this.container.find('td').unbind('mouseover mouseleave');
@@ -182,12 +206,28 @@ GameController.prototype = {
 		console.log('Beteve: '+this.placedWord+' Kivalasztva: '+this.selectedWord);
 		if (this.placedWord == this.selectedWord) {
 			console.log('MEGVAN');
+			this.foundWords++;
 			this.newTable();
 			// IDO+
 		} else {
 			console.log('NEMJO');
 			// IDO -
 		}
+	},
+	checkBackspace : function(activeCoordinate) {
+		if (this.selectedWordCoordinates.length >= 2) {
+			console.log('Active: '+activeCoordinate+' elozo: '+this.selectedWordCoordinates[this.selectedWordCoordinates.length -2]);
+			if (
+				activeCoordinate[0] == this.selectedWordCoordinates[this.selectedWordCoordinates.length -2][0] &&
+				activeCoordinate[1] == this.selectedWordCoordinates[this.selectedWordCoordinates.length -2][1]
+			) {
+				console.log('HOPP');
+			}
+		}
+	},
+	gameOver : function() {
+		//TODO
+		console.log('===GAME OVER===');
 	}
 }
 
