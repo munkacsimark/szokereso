@@ -7,6 +7,8 @@ Table.prototype = {
 	draw : function() {
 		this.creator.container.empty();
 		var temp = '<table>';
+		temp += '<thead><tr><th class="the-word" colspan="'+this.creator.dimensions[0]+'"></th></tr>'+
+						   '<tr><th class="life-bar" colspan="'+this.creator.dimensions[0]+'"><span><span style="width:'+this.creator.lifeController.life+'"></span></span></th></tr></thead><tbody>';
 		for (var i = 1; i <= this.creator.dimensions[0]; i++) {
 			temp += '<tr>';
 			for (var j = 1; j <= this.creator.dimensions[1]; j++) {
@@ -14,7 +16,7 @@ Table.prototype = {
 			};
 			temp += '</tr>';
 		};
-		temp += '</table>'
+		temp += '</tbody></table>'
 		this.creator.container.append(temp);
 		console.log('Tábla legenerálva');
 	},
@@ -47,6 +49,7 @@ Table.prototype = {
 			}
 			console.log(findableWord[i] + ' letéve: ' + this.creator.placedWordHistory[i] + ' - következő koordináta: ' + activePosition);
 		}
+		this.creator.container.find('.the-word').text('Keresendő szó: ' + findableWord.join().replace(/,/g ,''));
 		console.log('Keresendő szó elhelyezve');
 		return true;
 	},
@@ -80,7 +83,7 @@ function LifeController(creator) {
 	this.timer = setInterval(function(){
 		that.decrease(1 + (that.creator.foundWords / 3));
 		console.log(that.life);
-	}, 1000000);
+	}, 1000);
 }
 
 LifeController.prototype = {
@@ -101,6 +104,9 @@ LifeController.prototype = {
 		}
 	},
 	lifeChecker : function() {
+		this.creator.container.find('.life-bar span span').css({
+			'width' : this.life + '%'
+		});
 		if (this.life <= 0) {
 			this.creator.gameOver();
 			this.stop();

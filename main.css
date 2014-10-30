@@ -24,6 +24,24 @@ body {
   cursor: pointer;
   transition: 0.5s;
 }
+#game table tr th {
+  padding: 5px 0px;
+}
+#game table .the-word {
+  color: #fff;
+  text-align: left;
+}
+#game table .life-bar span {
+  display: block;
+  position: relative;
+  height: 10px;
+  width: 100%;
+  background: #999;
+}
+#game table .life-bar span span {
+  position: absolute;
+  background: #5f5;
+}
 #game .active {
   background-color: #f55;
   transition: 0.2s;
