@@ -78,7 +78,7 @@ function LifeController(creator) {
 	this.creator = creator;
 	this.life = 100;
 	this.timer = setInterval(function(){
-		that.decrease();
+		that.decrease(1 + (that.creator.foundWords / 3));
 		console.log(that.life);
 	}, 1000);
 }
@@ -90,12 +90,12 @@ LifeController.prototype = {
 	stop : function() {
 		clearInterval(this.timer);
 	},
-	decrease : function() {
-		this.life -= 30 + (this.creator.foundWords / 3);
+	decrease : function(value) {
+		this.life -= value;
 		this.lifeChecker();
 	},
-	increase : function() {
-		this.life += 10;
+	increase : function(value) {
+		this.life += value;
 		if (this.life > 100) {
 			this.life = 100;
 		}
@@ -126,31 +126,91 @@ MouseEventHandler.prototype = {
 			that.creator.clearSelection();
 			that.creator.wordSelectionHandler(false);
 		});
+	},
+	dropTrack : function() {
+		$(window).unbind('mousedown mouseup');
+	}
+}
+
+// DIALOG CONTROLLER
+function DialogController(creator) {
+	this.creator = creator;
+	this.fader;
+	this.dialogBox;
+}
+
+DialogController.prototype = {
+	init : function() {
+		this.creator.container.append('<div class="fader"></div>' +
+										'<div class="dialog-box">' +
+											'<h1></h1>' +
+											'<div class="dialog-content"></div>' +
+											'<div class="dialog-buttons"></div>' +
+										'</div>');
+		this.fader = $(this.creator.container).find('.fader');
+		this.dialogBox = $(this.creator.container).find('.dialog-box');
+		console.log('Dialog box inicializalva');
+	},
+	positionCenter : function() {
+		var xPos = $(window).width() / 2 - this.creator.container.find('.dialog-box').width() / 2;
+		var yPos = $(window).height() / 2 - this.creator.container.find('.dialog-box').height() / 2;
+		this.creator.container.find('.dialog-box').css({
+			'left' : xPos + 'px',
+			'top' : yPos + 'px'
+		});
+		console.log('Dialog box középre igazítva');
+	},
+	openDialog : function(text, content ,buttons) {
+		this.dialogBox.find('h1').append(text);
+		this.dialogBox.find('.dialog-content').append(content);
+		this.dialogBox.find('.dialog-buttons').append(buttons);
+		this.positionCenter();
+		this.fader.show();
+		this.dialogBox.show();
+		this.creator.buttonController.trackButtons();
+	}
+}
+
+//BUTTON CONTROLLER
+function ButtonController(creator) {
+	this.creator = creator;
+}
+
+ButtonController.prototype = {
+	trackButtons : function() {
+		var that = this;
+		$('button').on('click', function(){
+			if ($(this).attr('class') == 'restart-button') {
+				that.creator.start();
+			}
+		});
 	}
 }
 
 // GAME CONTROLLER
 function GameController(container, abc, words, dimensions) {
 	this.container = container;
-	this.table = {};
 	this.abc = abc;
 	this.words = words;
 	this.dimensions = dimensions;
-	this.placedWordHistory = [];
 	this.placedWord = '';
 	this.selectedWord = '';
+	this.placedWordHistory = [];
 	this.selectedWordCoordinates = [];
-	this.selectSwitch = true;
-	this.foundWords = 0;
 }
 
 GameController.prototype = {
 	start : function() {
 		if (this.container.length != 0) {
+			this.mouseEventHandler = new MouseEventHandler(this);
+			this.lifeController = new LifeController(this);
+			this.dialogController = new DialogController(this);
+			this.buttonController = new ButtonController(this);
+			this.table = new Table(this);
 			this.newTable();
-			var mouseEventHandler = new MouseEventHandler(this);
-			var lifeController = new LifeController(this);
-			mouseEventHandler.trackMouse();
+			this.mouseEventHandler.trackMouse();
+			this.foundWords = 0;
+			this.selectSwitch = true;
 		} else {
 			console.error('Nincs "game" id-val rendelkező elem.');
 			return;
@@ -159,9 +219,9 @@ GameController.prototype = {
 	},
 	newTable : function() {
 		console.log('--- Inicializálás ---');
-		this.table = new Table(this);
 		this.table.draw();
 		this.table.positionCenter();
+		this.dialogController.init();
 		while (!this.table.putFindableWord()) {
 			this.table.draw();
 		} ;
@@ -208,10 +268,10 @@ GameController.prototype = {
 			console.log('MEGVAN');
 			this.foundWords++;
 			this.newTable();
-			// IDO+
+			this.lifeController.increase(10);
 		} else {
 			console.log('NEMJO');
-			// IDO -
+			this.lifeController.decrease(5);
 		}
 	},
 	checkBackspace : function(activeCoordinate) {
@@ -221,12 +281,13 @@ GameController.prototype = {
 				activeCoordinate[0] == this.selectedWordCoordinates[this.selectedWordCoordinates.length -2][0] &&
 				activeCoordinate[1] == this.selectedWordCoordinates[this.selectedWordCoordinates.length -2][1]
 			) {
-				console.log('HOPP');
+				console.log('HOPP'); // TODO visszatorles
 			}
 		}
 	},
 	gameOver : function() {
-		//TODO
+		this.dialogController.openDialog('Game Over', '<p>Újra akarod kezdeni a játékot?</p>', '<button class="restart-button">Újrakezdés</button>');
+		this.mouseEventHandler.dropTrack();
 		console.log('===GAME OVER===');
 	}
 }
