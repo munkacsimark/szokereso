@@ -80,7 +80,7 @@ function LifeController(creator) {
 	this.timer = setInterval(function(){
 		that.decrease(1 + (that.creator.foundWords / 3));
 		console.log(that.life);
-	}, 1000);
+	}, 1000000);
 }
 
 LifeController.prototype = {
@@ -241,24 +241,27 @@ GameController.prototype = {
 	clearSelection : function() {
 		this.container.find('td').removeClass('active');
 		this.selectedWordCoordinates = [];
-		this.selectedWord = [];
+		this.selectedWord = '';
 	},
 	wordSelectionHandler : function(isMouseDown) {
 		var that = this;
+		var activeCoordinate = [];
 		if (isMouseDown) {
 			this.container.find('td').bind('mouseover mouseleave', function() {
 				if (!that.selectSwitch) {
 					that.container.find('td').unbind('mouseleave');
 				}
-				var activeCoordinate = [$(this).data('row'), $(this).data('column')];
+				activeCoordinate = [$(this).data('row'), $(this).data('column')];
+				that.checkBackspace(activeCoordinate);
 				that.selectedWordCoordinates.push(activeCoordinate);
+				console.log('Active: '+activeCoordinate+' elozo: '+that.selectedWordCoordinates[that.selectedWordCoordinates.length -2]);
 				that.selectedWord += $(this).text();
 				$(this).addClass('active');
 				that.selectSwitch = false;
-				that.checkBackspace(activeCoordinate);
 			});
 		} else {
 			this.container.find('td').unbind('mouseover mouseleave');
+			this.selectedWordCoordinates.push(activeCoordinate);
 			this.selectSwitch = true;
 		}
 	},
@@ -276,12 +279,17 @@ GameController.prototype = {
 	},
 	checkBackspace : function(activeCoordinate) {
 		if (this.selectedWordCoordinates.length >= 2) {
-			console.log('Active: '+activeCoordinate+' elozo: '+this.selectedWordCoordinates[this.selectedWordCoordinates.length -2]);
 			if (
 				activeCoordinate[0] == this.selectedWordCoordinates[this.selectedWordCoordinates.length -2][0] &&
 				activeCoordinate[1] == this.selectedWordCoordinates[this.selectedWordCoordinates.length -2][1]
 			) {
-				console.log('HOPP'); // TODO visszatorles
+				this.container.find(
+					'[data-row="' + this.selectedWordCoordinates[this.selectedWordCoordinates.length -1][0] +'"]'+
+					'[data-column="' + this.selectedWordCoordinates[this.selectedWordCoordinates.length -1][1] + '"]'
+				).removeClass('active');
+				this.selectedWordCoordinates = this.selectedWordCoordinates.slice(0, -2);
+				this.selectedWord = this.selectedWord.slice(0, -2);
+				console.log('visszatorles');
 			}
 		}
 	},
